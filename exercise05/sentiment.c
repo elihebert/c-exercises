@@ -67,6 +67,10 @@ void dump_sentiments() { map_apply(sentiments, print_map_entry); }
 // struct on heap and put it in map with first values it read
 // close input file
 void build_sentiment_map(FILE *f) {
+  if (!f) {
+    fprintf(stderr, "Error, invalid file pointer\n");
+    exit(1);
+  }
   if (sentiments) {
     free_map_values();
     map_free(&sentiments);
@@ -77,6 +81,11 @@ void build_sentiment_map(FILE *f) {
   int line_no = -1;
   while (fgets(buff, BUFFER_SIZE, f) != NULL) {
     line_no++;
+    if (feof(f)) {
+      printf("reached end of file at line%d\n", line_no);
+      break;
+    }
+    // printf("on line %d\n", line_no);
 
     if (buff[0] == '#') {
       continue;
@@ -88,16 +97,24 @@ void build_sentiment_map(FILE *f) {
     char *negativeScoreStr = strtok(NULL, "\t");
     char *wordsStr = strtok(NULL, "\t");
 
+    if (!pos || !wordId || !positiveScoreStr || !negativeScoreStr ||
+        !wordsStr) {
+      fprintf(stderr, "Error: invalid format on line %d.\n", line_no);
+      continue;
+    }
     double positiveScore = atof(positiveScoreStr);
     double negativeScore = atof(negativeScoreStr);
 
-    char *word_sense;
-    while ((word_sense = strtok(wordsStr, " ")) != NULL) {
+    char *word_sense = wordsStr;
+    while (word_sense != NULL & *word_sense != '\0') {
       char word[BUFFER_SIZE];
-      strncpy(word, word_sense, strchr(word_sense, '#') - word_sense);
-      word[strchr(word_sense, '#') - word_sense] = '\0';
+      char *hashPosition = strchr(word_sense, '#');
+      if (hashPosition != NULL) {
+        snprintf(word, hashPosition - word_sense + 1, "%s", word_sense);
+      } else {
+        break; // break loop if no '#' in word_sense
+      }
       lower_and_strip(word);
-
       sentiment_t *sentiM;
       int inMap = map_get(sentiments, word, (void **)&sentiM);
       if (inMap) {
@@ -113,6 +130,8 @@ void build_sentiment_map(FILE *f) {
         map_put(sentiments, word, sentiM);
       }
       wordsStr = NULL;
+      word_sense += strcspn(word_sense, " \t");
+      word_sense += strspn(word_sense, " \t");
     }
   }
 }
@@ -135,7 +154,7 @@ void sentiment_stdin() {
       }
       word = strtok(NULL, " ");
     }
-    printf("%s : %f\n", buffer, sentiment);
+    printf("%s : %f\n", input, sentiment);
   }
 }
 
@@ -163,4 +182,8 @@ int main(int argc, char **argv) {
   // dump_sentiments();
   // Read sentiments from standard in...
   sentiment_stdin();
+
+  // free memory allocated to sentiment map
+  // free_map_values();
+  // map_free(&sentiments);
 }
