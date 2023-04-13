@@ -106,7 +106,7 @@ void build_sentiment_map(FILE *f) {
     double negativeScore = atof(negativeScoreStr);
 
     char *word_sense = wordsStr;
-    while (word_sense != NULL & *word_sense != '\0') {
+    while (word_sense != NULL && *word_sense != '\0') {
       char word[BUFFER_SIZE];
       char *hashPosition = strchr(word_sense, '#');
       if (hashPosition != NULL) {
@@ -141,7 +141,10 @@ void sentiment_stdin() {
   char input[BUFFER_SIZE];
   while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
     strncpy(input, buffer, BUFFER_SIZE);
-    input[strlen(input) - 1] = '\0';
+    size_t input_len = strlen(input);
+    if (input[input_len - 1] == '\n') {
+      input[input_len - 1] = '\0';
+    }
 
     double sentiment = 0;
     char *word = strtok(input, " ");
