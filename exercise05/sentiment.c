@@ -67,10 +67,13 @@ void dump_sentiments() { map_apply(sentiments, print_map_entry); }
 // struct on heap and put it in map with first values it read
 // close input file
 void build_sentiment_map(FILE *f) {
+  // error checks for invalid file pointer(s)
   if (!f) {
     fprintf(stderr, "Error, invalid file pointer\n");
     exit(1);
   }
+
+  // frees the existing sentiment map and creates a new one
   if (sentiments) {
     free_map_values();
     map_free(&sentiments);
@@ -79,18 +82,23 @@ void build_sentiment_map(FILE *f) {
 
   char buff[BUFFER_SIZE];
   int line_no = -1;
+
+  // reads input file line by line
   while (fgets(buff, BUFFER_SIZE, f) != NULL) {
     line_no++;
+    // break if end of file is reached
     if (feof(f)) {
       printf("reached end of file at line%d\n", line_no);
       break;
     }
-    // printf("on line %d\n", line_no);
 
+    // ignore comment lines starting with #
     if (buff[0] == '#') {
       continue;
     }
 
+    // tokenize line to extract relevant fields like position, workId,
+    // positiveScore, negativeScore, wordsStr
     char *pos = strtok(buff, "\t");
     char *wordId = strtok(NULL, "\t");
     char *positiveScoreStr = strtok(NULL, "\t");
@@ -105,7 +113,11 @@ void build_sentiment_map(FILE *f) {
     double positiveScore = atof(positiveScoreStr);
     double negativeScore = atof(negativeScoreStr);
 
+    // iterate through each word_sense in wordsStr
     char *word_sense = wordsStr;
+    // check if word is already in sentiment map; if so, update values, or
+    // create new sentiment_t struct and add it to map ; move to next word_sense
+    // in wordsStr
     while (word_sense != NULL && *word_sense != '\0') {
       char word[BUFFER_SIZE];
       char *hashPosition = strchr(word_sense, '#');
@@ -136,27 +148,35 @@ void build_sentiment_map(FILE *f) {
   }
 }
 
+// read input text from stdin, tokenize, and calculate sentiment score; print
+// the results
 void sentiment_stdin() {
   char buffer[BUFFER_SIZE];
   char input[BUFFER_SIZE];
+  // read input lines from stdin
   while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
+    // copy input line and remove newline character
     strncpy(input, buffer, BUFFER_SIZE);
     size_t input_len = strlen(input);
     if (input[input_len - 1] == '\n') {
       input[input_len - 1] = '\0';
     }
-
+    // initialize sentiment score
     double sentiment = 0;
+    // tokenize input line into words and calculate sentiment score
     char *word = strtok(input, " ");
     while (word != NULL) {
       lower_and_strip(word);
       sentiment_t *sentiM;
 
+      // look up word in sentiment map; update score based on sentiment values,
+      // and then move to next word
       if (map_get(sentiments, word, (void **)&sentiM)) {
         sentiment += sentiM->pos - sentiM->neg;
       }
       word = strtok(NULL, " ");
     }
+    // prints input line and sentiment score
     printf("%s : %f\n", input, sentiment);
   }
 }
