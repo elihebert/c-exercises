@@ -123,7 +123,19 @@ void sentiment_stdin() {
   while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
     strncpy(input, buffer, BUFFER_SIZE);
     input[strlen(input) - 1] = '\0';
-    // TODO: Analyze sentiment for line stored in buffer and output result.
+
+    double sentiment = 0;
+    char *word = strtok(input, " ");
+    while (word != NULL) {
+      lower_and_strip(word);
+      sentiment_t *sentiM;
+
+      if (map_get(sentiments, word, (void **)&sentiM)) {
+        sentiment += sentiM->pos - sentiM->neg;
+      }
+      word = strtok(NULL, " ");
+    }
+    printf("%s : %f\n", buffer, sentiment);
   }
 }
 
