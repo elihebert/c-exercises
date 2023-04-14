@@ -156,11 +156,12 @@ void sentiment_stdin() {
   // read input lines from stdin
   while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
     // copy input line and remove newline character
-    strncpy(input, buffer, BUFFER_SIZE);
-    size_t input_len = strlen(input);
-    if (input[input_len - 1] == '\n') {
-      input[input_len - 1] = '\0';
+    // strncpy(input, buffer, BUFFER_SIZE);
+    size_t buffer_len = strlen(buffer);
+    if (buffer[buffer_len - 1] == '\n') {
+      buffer[buffer_len - 1] = '\0';
     }
+    strncpy(input, buffer, BUFFER_SIZE);
     // initialize sentiment score
     double sentiment = 0;
     // tokenize input line into words and calculate sentiment score
@@ -177,7 +178,7 @@ void sentiment_stdin() {
       word = strtok(NULL, " ");
     }
     // prints input line and sentiment score
-    printf("%s : %f\n", input, sentiment);
+    printf("%s : %f\n", buffer, sentiment);
   }
 }
 
@@ -207,6 +208,6 @@ int main(int argc, char **argv) {
   sentiment_stdin();
 
   // free memory allocated to sentiment map
-  // free_map_values();
-  // map_free(&sentiments);
+  free_map_values();
+  map_free(&sentiments);
 }
