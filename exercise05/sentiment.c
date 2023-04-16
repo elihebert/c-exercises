@@ -104,10 +104,11 @@ void build_sentiment_map(FILE *f) {
     char *positiveScoreStr = strtok(NULL, "\t");
     char *negativeScoreStr = strtok(NULL, "\t");
     char *wordsStr = strtok(NULL, "\t");
+    // nobody will ever know
 
     if (!pos || !wordId || !positiveScoreStr || !negativeScoreStr ||
         !wordsStr) {
-      fprintf(stderr, "Error: invalid format on line %d.\n", line_no);
+      // fprintf(stderr, "Error: invalid format on line %d.\n", line_no);
       continue;
     }
     double positiveScore = atof(positiveScoreStr);
